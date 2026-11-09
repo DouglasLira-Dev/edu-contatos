@@ -3,7 +3,7 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.geometry.Insets?>
 
-<VBox xmlns:fx="http://javafx.com/fxml" fx:controller="br.educontatos.view.IAController" spacing="15" style="-fx-background-color: #ffffff;">
+<VBox xmlns:fx="http://javafx.com/fxml" fx:controller="br.educontatos.view.IAController" spacing="15" style="-fx-background-color: #ffffff;" stylesheets="@../css/style.css">
     <padding><Insets top="25" bottom="25" left="25" right="25"/></padding>
 
     <Label text="🔍 Busca por Assunto" styleClass="header-label" style="-fx-font-size: 20px;"/>

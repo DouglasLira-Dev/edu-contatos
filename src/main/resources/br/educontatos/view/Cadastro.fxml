@@ -7,7 +7,8 @@
 <VBox xmlns:fx="http://javafx.com/fxml"
       fx:controller="br.educontatos.view.CadastroController"
       spacing="15"
-      style="-fx-background-color: #ffffff;">
+      style="-fx-background-color: #ffffff;"
+      stylesheets="@../css/style.css">
     <padding><Insets top="25" bottom="25" left="25" right="25"/></padding>
 
     <Label fx:id="lblTitulo" text="Dados do Contato" styleClass="header-label" style="-fx-font-size: 20px;"/>

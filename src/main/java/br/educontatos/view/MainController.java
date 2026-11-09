@@ -3,18 +3,26 @@ package br.educontatos.view;
 import br.educontatos.dao.SetorDAO;
 import br.educontatos.model.Setor;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
-import java.sql.SQLException;
 import java.io.IOException;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
+import java.sql.SQLException;
+import java.text.Normalizer;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -36,13 +44,10 @@ public class MainController {
     @FXML private TableColumn<Setor, String> colDescricao;
 
     private final SetorDAO dao = new SetorDAO();
+    private List<Setor> todosOsSetores = new ArrayList<>();
 
-    /**
-     * Método chamado automaticamente pelo JavaFX quando a tela abre.
-     */
     @FXML
     public void initialize() {
-        // Mapeia as colunas da tabela para os atributos da classe Setor
         colNome.setCellValueFactory(new PropertyValueFactory<>("nome"));
         colResponsavel.setCellValueFactory(new PropertyValueFactory<>("responsavel"));
         colRamal.setCellValueFactory(new PropertyValueFactory<>("ramal"));
@@ -54,45 +59,68 @@ public class MainController {
             TableRow<Setor> row = new TableRow<>();
             row.setOnMouseClicked(event -> {
                 if (event.getClickCount() == 2 && (!row.isEmpty())) {
-                    Setor rowData = row.getItem();
-                    abrirJanelaCadastro(rowData);
+                    abrirJanelaCadastro(row.getItem());
                 }
             });
             return row;
         });
 
-        // Carrega todos os contatos ao abrir a tela
+        // Carrega os dados iniciais
         carregarTabela("");
 
-        // Listener em tempo real: toda vez que o usuário digita, a tabela atualiza
+        // Listener de busca instantânea (agora filtra na memória, sem travar o banco)
         txtBusca.textProperty().addListener((observable, oldValue, newValue) -> {
             carregarTabela(newValue);
         });
     }
 
-    /**
-     * Atualiza os dados da tabela com base no filtro digitado.
-     * @param filtro Texto digitado pelo usuário.
-     */
     private void carregarTabela(String filtro) {
         try {
-            ObservableList<Setor> lista = FXCollections.observableArrayList(dao.listar(filtro));
-            tabelaContatos.setItems(lista);
+            // Carrega do banco apenas se a lista estiver vazia
+            if (todosOsSetores.isEmpty()) {
+                todosOsSetores = dao.listar("");
+            }
+
+            if (filtro == null || filtro.trim().isEmpty()) {
+                tabelaContatos.setItems(FXCollections.observableArrayList(todosOsSetores));
+                return;
+            }
+
+            // Filtro em memória ignorando acentos e maiúsculas
+            String filtroNormalizado = normalizar(filtro);
+            List<Setor> filtrados = todosOsSetores.stream()
+                    .filter(s -> normalizar(s.getNome()).contains(filtroNormalizado) ||
+                            normalizar(s.getResponsavel()).contains(filtroNormalizado) ||
+                            normalizar(s.getRamal()).contains(filtroNormalizado) ||
+                            normalizar(s.getEmail()).contains(filtroNormalizado) ||
+                            normalizar(s.getDescricao()).contains(filtroNormalizado))
+                    .toList();
+
+            tabelaContatos.setItems(FXCollections.observableArrayList(filtrados));
+
         } catch (SQLException e) {
             mostrarAlerta("Erro no Banco", "Não foi possível carregar os dados: " + e.getMessage(), Alert.AlertType.ERROR);
         }
     }
 
+    // Função utilitária para remover acentos
+    private String normalizar(String texto) {
+        if (texto == null) return "";
+        return Normalizer.normalize(texto, Normalizer.Form.NFD)
+                .replaceAll("\\p{InCombiningDiacriticalMarks}+", "")
+                .toLowerCase();
+    }
+
     @FXML
     public void abrirCadastro() {
-        abrirJanelaCadastro(null); // Passa null para indicar que é um novo cadastro
+        abrirJanelaCadastro(null);
     }
 
     @FXML
     public void editarSelecionado() {
         Setor selecionado = tabelaContatos.getSelectionModel().getSelectedItem();
         if (selecionado != null) {
-            abrirJanelaCadastro(selecionado); // Passa o objeto para edição
+            abrirJanelaCadastro(selecionado);
         } else {
             mostrarAlerta("Aviso", "Selecione um contato na tabela para editar.", Alert.AlertType.WARNING);
         }
@@ -111,6 +139,7 @@ public class MainController {
             if (result.isPresent() && result.get() == ButtonType.OK) {
                 try {
                     dao.excluir(selecionado.getId());
+                    todosOsSetores.clear(); // Limpa a memória para recarregar
                     carregarTabela(txtBusca.getText());
                 } catch (SQLException e) {
                     mostrarAlerta("Erro no Banco", "Não foi possível excluir: " + e.getMessage(), Alert.AlertType.ERROR);
@@ -121,10 +150,6 @@ public class MainController {
         }
     }
 
-    /**
-     * Abre a janela de cadastro. Se um setor for passado, entra em modo de edição.
-     * @param setor O setor a ser editado ou null para novo.
-     */
     private void abrirJanelaCadastro(Setor setor) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/br/educontatos/view/Cadastro.fxml"));
@@ -137,20 +162,17 @@ public class MainController {
             Stage stage = new Stage();
             stage.setTitle(setor == null ? "Novo Contato" : "Editar Contato");
             stage.setScene(new Scene(root));
-            stage.initModality(Modality.APPLICATION_MODAL); // Bloqueia a tela de trás até fechar
+            stage.initModality(Modality.APPLICATION_MODAL);
             stage.setResizable(false);
             stage.showAndWait();
 
         } catch (IOException e) {
-            e.printStackTrace();
             mostrarAlerta("Erro", "Não foi possível abrir a tela de cadastro.", Alert.AlertType.ERROR);
         }
     }
 
-    /**
-     * Método público chamado pelo CadastroController para atualizar a tabela após salvar.
-     */
     public void atualizarTabela() {
+        todosOsSetores.clear(); // Limpa a memória para buscar os dados novos do banco
         carregarTabela(txtBusca.getText());
     }
 
@@ -168,12 +190,78 @@ public class MainController {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/br/educontatos/view/IA.fxml"));
             Parent root = loader.load();
             Stage stage = new Stage();
-            stage.setTitle("Assistente Virtual");
+            stage.setTitle("Busca por Assunto");
             stage.setScene(new Scene(root));
             stage.initModality(Modality.APPLICATION_MODAL);
             stage.show();
         } catch (IOException e) {
-            e.printStackTrace();
+            mostrarAlerta("Erro", "Não foi possível abrir a tela de busca.", Alert.AlertType.ERROR);
+        }
+    }
+
+    // MÉTODOS DE EXPORTAÇÃO E IMPORTAÇÃO CSV
+
+    @FXML
+    public void exportarCSV() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Salvar planilha CSV");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Arquivo CSV", "*.csv"));
+        File file = fileChooser.showSaveDialog(tabelaContatos.getScene().getWindow());
+
+        if (file != null) {
+            try (PrintWriter writer = new PrintWriter(file, StandardCharsets.UTF_8)) {
+                writer.println("nome,responsavel,email,ramal,descricao");
+                for (Setor s : todosOsSetores) {
+                    writer.printf("%s,%s,%s,%s,%s%n",
+                            s.getNome(), s.getResponsavel() == null ? "" : s.getResponsavel(),
+                            s.getEmail() == null ? "" : s.getEmail(), s.getRamal() == null ? "" : s.getRamal(),
+                            s.getDescricao() == null ? "" : s.getDescricao());
+                }
+                mostrarAlerta("Sucesso", "Planilha exportada com sucesso!", Alert.AlertType.INFORMATION);
+            } catch (Exception e) {
+                mostrarAlerta("Erro", "Erro ao exportar: " + e.getMessage(), Alert.AlertType.ERROR);
+            }
+        }
+    }
+
+    @FXML
+    public void importarCSV() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Abrir planilha CSV");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Arquivo CSV", "*.csv"));
+        File file = fileChooser.showOpenDialog(tabelaContatos.getScene().getWindow());
+
+        if (file != null) {
+            try (BufferedReader reader = new BufferedReader(new FileReader(file, StandardCharsets.UTF_8))) {
+                String linha;
+                boolean primeiraLinha = true;
+                int importados = 0;
+
+                while ((linha = reader.readLine()) != null) {
+                    if (primeiraLinha) { primeiraLinha = false; continue; } // Pula o cabeçalho
+                    String[] partes = linha.split(",", -1); // -1 para manter campos vazios
+
+                    if (partes.length >= 1 && !partes[0].trim().isEmpty()) {
+                        Setor s = new Setor();
+                        s.setNome(partes[0].trim());
+                        s.setResponsavel(partes.length > 1 ? partes[1].trim() : "");
+                        s.setEmail(partes.length > 2 ? partes[2].trim() : "");
+                        s.setRamal(partes.length > 3 ? partes[3].trim() : "");
+                        s.setDescricao(partes.length > 4 ? partes[4].trim() : "");
+
+                        try {
+                            dao.salvar(s);
+                            importados++;
+                        } catch (SQLException e) {
+                            // Ignora duplicados e continua a importação 
+                        }
+                    }
+                }
+                atualizarTabela();
+                mostrarAlerta("Sucesso", importados + " contatos importados com sucesso!", Alert.AlertType.INFORMATION);
+            } catch (Exception e) {
+                mostrarAlerta("Erro", "Erro ao importar: " + e.getMessage(), Alert.AlertType.ERROR);
+            }
         }
     }
 }

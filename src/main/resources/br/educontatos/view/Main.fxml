@@ -42,6 +42,8 @@
             <Button text="+ Novo Contato" onAction="#abrirCadastro" styleClass="btn-primary"/>
             <Button text="Editar" onAction="#editarSelecionado" styleClass="btn-secondary"/>
             <Button text="Excluir" onAction="#excluirSelecionado" styleClass="btn-danger"/>
+            <Button text="📤 Exportar" onAction="#exportarCSV" styleClass="btn-secondary"/>
+            <Button text="📥 Importar" onAction="#importarCSV" styleClass="btn-secondary"/>
         </HBox>
     </bottom>
 </BorderPane>

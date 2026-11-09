@@ -24,12 +24,13 @@ public class SetorDAO {
      * @param setor O objeto Setor a ser salvo.
      */
     public void salvar(Setor setor) {
-        String sql = "INSERT INTO setores (nome, responsavel, email, ramal) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO setores (nome, responsavel, email, ramal, descricao) VALUES (?, ?, ?, ?, ?)";
         try (Connection conn = ConexaoDB.conectar(); PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, setor.getNome());
             stmt.setString(2, setor.getResponsavel());
             stmt.setString(3, setor.getEmail());
             stmt.setString(4, setor.getRamal());
+            stmt.setString(5, setor.getDescricao());
             stmt.executeUpdate();
         } catch (SQLException e) {
             System.err.println("Erro ao salvar: " + e.getMessage());
@@ -41,13 +42,14 @@ public class SetorDAO {
      * @param setor O objeto Setor com os dados atualizados (deve conter o ID).
      */
     public void atualizar(Setor setor) {
-        String sql = "UPDATE setores SET nome=?, responsavel=?, email=?, ramal=? WHERE id=?";
+        String sql = "UPDATE setores SET nome=?, responsavel=?, email=?, ramal=?, descricao=? WHERE id=?";
         try (Connection conn = ConexaoDB.conectar(); PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, setor.getNome());
             stmt.setString(2, setor.getResponsavel());
             stmt.setString(3, setor.getEmail());
             stmt.setString(4, setor.getRamal());
-            stmt.setInt(5, setor.getId());
+            stmt.setString(5, setor.getDescricao());
+            stmt.setInt(6, setor.getId());
             stmt.executeUpdate();
         } catch (SQLException e) {
             System.err.println("Erro ao atualizar: " + e.getMessage());
@@ -91,7 +93,8 @@ public class SetorDAO {
                     rs.getString("nome"),
                     rs.getString("responsavel"),
                     rs.getString("email"),
-                    rs.getString("ramal")
+                    rs.getString("ramal"),
+                    rs.getString("descricao")
                 );
                 lista.add(s);
             }

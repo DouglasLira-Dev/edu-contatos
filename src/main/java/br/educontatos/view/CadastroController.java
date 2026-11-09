@@ -6,6 +6,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TextArea;
 import javafx.stage.Stage;
 
 /**
@@ -22,6 +23,7 @@ public class CadastroController {
     @FXML private TextField txtResponsavel;
     @FXML private TextField txtRamal;
     @FXML private TextField txtEmail;
+    @FXML private TextArea txtDescricao;
 
     private final SetorDAO dao = new SetorDAO();
     private Setor setorEdicao = null;
@@ -43,6 +45,7 @@ public class CadastroController {
             txtResponsavel.setText(setor.getResponsavel());
             txtRamal.setText(setor.getRamal());
             txtEmail.setText(setor.getEmail());
+            txtDescricao.setText(setor.getDescricao());
         }
     }
 
@@ -60,6 +63,7 @@ public class CadastroController {
         setor.setResponsavel(txtResponsavel.getText().trim());
         setor.setRamal(txtRamal.getText().trim());
         setor.setEmail(txtEmail.getText().trim());
+        setor.setDescricao(txtDescricao.getText().trim());
 
         // Decide se é INSERT (novo) ou UPDATE (edição)
         if (setorEdicao == null) {

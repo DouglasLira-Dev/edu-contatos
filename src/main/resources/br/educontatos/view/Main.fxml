@@ -4,33 +4,36 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.geometry.Insets?>
 
-<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="br.educontatos.view.MainController">
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="br.educontatos.view.MainController"
+            stylesheets="@../css/style.css">
     <top>
-        <VBox spacing="10" alignment="CENTER">
-            <padding><Insets top="20" bottom="20" left="20" right="20"/></padding>
-            <Label text="Central de Contatos" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;"/>
-            <Label text="Consulte ramais e e-mails dos setores da Secretaria" style="-fx-font-size: 14px; -fx-text-fill: #7f8c8d;"/>
-            <TextField fx:id="txtBusca" promptText="🔍 Digite o nome do setor, responsável ou ramal para buscar..." style="-fx-font-size: 14px; -fx-padding: 10px;"/>
+        <VBox spacing="5" alignment="CENTER">
+            <padding><Insets top="30" bottom="20" left="20" right="20"/></padding>
+            <Label text="Central de Contatos" styleClass="header-label"/>
+            <Label text="Consulte ramais e e-mails dos setores da Secretaria" styleClass="sub-header-label"/>
+            <TextField fx:id="txtBusca" promptText="🔍 Digite o nome do setor, responsável ou ramal para buscar..." prefWidth="600" style="-fx-margin-top: 15px;"/>
         </VBox>
     </top>
 
     <center>
-        <TableView fx:id="tabelaContatos" style="-fx-padding: 0 20 0 20;">
+        <TableView fx:id="tabelaContatos" style="-fx-margin: 0 20 0 20;">
             <columns>
-                <TableColumn fx:id="colNome" text="Setor" prefWidth="200"/>
-                <TableColumn fx:id="colResponsavel" text="Responsável" prefWidth="200"/>
-                <TableColumn fx:id="colRamal" text="Ramal" prefWidth="100"/>
-                <TableColumn fx:id="colEmail" text="E-mail" prefWidth="300"/>
+                <TableColumn fx:id="colNome" text="Setor" prefWidth="150"/>
+                <TableColumn fx:id="colResponsavel" text="Responsável" prefWidth="150"/>
+                <TableColumn fx:id="colRamal" text="Ramal" prefWidth="80"/>
+                <TableColumn fx:id="colEmail" text="E-mail" prefWidth="200"/>
+                <TableColumn fx:id="colDescricao" text="Descrição" prefWidth="250"/>
             </columns>
         </TableView>
     </center>
 
     <bottom>
         <HBox spacing="15" alignment="CENTER_RIGHT">
-            <padding><Insets top="15" bottom="20" left="20" right="20"/></padding>
-            <Button text="Novo Contato" onAction="#abrirCadastro" style="-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10px 20px; -fx-cursor: hand;"/>
-            <Button text="Editar" onAction="#editarSelecionado" style="-fx-background-color: #2980b9; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10px 20px; -fx-cursor: hand;"/>
-            <Button text="Excluir" onAction="#excluirSelecionado" style="-fx-background-color: #c0392b; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10px 20px; -fx-cursor: hand;"/>
+            <padding><Insets top="20" bottom="20" left="20" right="20"/></padding>
+            <Button text="+ Novo Contato" onAction="#abrirCadastro" styleClass="btn-primary"/>
+            <Button text="Editar" onAction="#editarSelecionado" styleClass="btn-secondary"/>
+            <Button text="Excluir" onAction="#excluirSelecionado" styleClass="btn-danger"/>
         </HBox>
     </bottom>
 </BorderPane>

@@ -35,7 +35,8 @@ public class ConexaoDB {
                 "nome TEXT NOT NULL, " +
                 "responsavel TEXT, " +
                 "email TEXT, " +
-                "ramal TEXT" +
+                "ramal TEXT, " +
+                "descricao TEXT" +
                 ");";
         // O bloco try-with-resources garante que a conexão e o statement sejam fechados automaticamente
         try (Connection conn = conectar(); Statement stmt = conn.createStatement()) {

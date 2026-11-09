@@ -32,6 +32,7 @@ public class MainController {
     @FXML private TableColumn<Setor, String> colResponsavel;
     @FXML private TableColumn<Setor, String> colRamal;
     @FXML private TableColumn<Setor, String> colEmail;
+    @FXML private TableColumn<Setor, String> colDescricao;
 
     private final SetorDAO dao = new SetorDAO();
 
@@ -45,6 +46,19 @@ public class MainController {
         colResponsavel.setCellValueFactory(new PropertyValueFactory<>("responsavel"));
         colRamal.setCellValueFactory(new PropertyValueFactory<>("ramal"));
         colEmail.setCellValueFactory(new PropertyValueFactory<>("email"));
+        colDescricao.setCellValueFactory(new PropertyValueFactory<>("descricao"));
+
+        // Duplo clique para editar
+        tabelaContatos.setRowFactory(tv -> {
+            TableRow<Setor> row = new TableRow<>();
+            row.setOnMouseClicked(event -> {
+                if (event.getClickCount() == 2 && (!row.isEmpty())) {
+                    Setor rowData = row.getItem();
+                    abrirJanelaCadastro(rowData);
+                }
+            });
+            return row;
+        });
 
         // Carrega todos os contatos ao abrir a tela
         carregarTabela("");

@@ -13,6 +13,7 @@ public class Setor {
     private String responsavel;
     private String email;
     private String ramal;
+    private String descricao;
 
     /**
      * Construtor vazio (necessário para instanciar objetos ao buscar do banco).
@@ -28,12 +29,13 @@ public class Setor {
      * @param email O e-mail institucional do setor.
      * @param ramal O número do ramal telefônico.
      */
-    public Setor(int id, String nome, String responsavel, String email, String ramal) {
+    public Setor(int id, String nome, String responsavel, String email, String ramal, String descricao) {
         this.id = id;
         this.nome = nome;
         this.responsavel = responsavel;
         this.email = email;
         this.ramal = ramal;
+        this.descricao = descricao;
     }
 
     // Getters e Setters documentados
@@ -47,4 +49,6 @@ public class Setor {
     public void setEmail(String email) { this.email = email; }
     public String getRamal() { return ramal; }
     public void setRamal(String ramal) { this.ramal = ramal; }
+    public String getDescricao() {return descricao;}
+    public void setDescricao(String descricao) {this.descricao = descricao;}
 }

@@ -2,6 +2,8 @@ package br.educontatos.view;
 
 import br.educontatos.dao.SetorDAO;
 import br.educontatos.model.Setor;
+
+import java.sql.SQLException;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
@@ -51,13 +53,11 @@ public class CadastroController {
 
     @FXML
     public void salvar() {
-        // Validação simples: Nome do setor é obrigatório
         if (txtNome.getText().trim().isEmpty()) {
             mostrarAlerta("Erro de Validação", "O nome do setor é obrigatório!", Alert.AlertType.ERROR);
             return;
         }
 
-        // Cria o objeto com os dados digitados
         Setor setor = new Setor();
         setor.setNome(txtNome.getText().trim());
         setor.setResponsavel(txtResponsavel.getText().trim());
@@ -65,21 +65,27 @@ public class CadastroController {
         setor.setEmail(txtEmail.getText().trim());
         setor.setDescricao(txtDescricao.getText().trim());
 
-        // Decide se é INSERT (novo) ou UPDATE (edição)
-        if (setorEdicao == null) {
-            dao.salvar(setor);
-        } else {
-            setor.setId(setorEdicao.getId());
-            dao.atualizar(setor);
-        }
+        try {
+            if (setorEdicao == null) {
+                dao.salvar(setor);
+            } else {
+                setor.setId(setorEdicao.getId());
+                dao.atualizar(setor);
+            }
 
-        // Atualiza a tabela da tela principal
-        if (telaPrincipal != null) {
-            telaPrincipal.atualizarTabela();
-        }
+            if (telaPrincipal != null) {
+                telaPrincipal.atualizarTabela();
+            }
+            fecharJanela();
 
-        // Fecha a janela de cadastro
-        fecharJanela();
+        } catch (SQLException e) {
+            // Se o erro for por causa do UNIQUE (nome duplicado)
+            if (e.getMessage().contains("UNIQUE constraint failed")) {
+                mostrarAlerta("Erro", "Já existe um setor cadastrado com esse nome!", Alert.AlertType.ERROR);
+            } else {
+                mostrarAlerta("Erro no Banco", "Não foi possível salvar: " + e.getMessage(), Alert.AlertType.ERROR);
+            }
+        }
     }
 
     @FXML

@@ -14,7 +14,7 @@ import java.util.List;
  * Data Access Object (DAO) responsável por executar as operações CRUD (Create, Read, Update, Delete)
  * na tabela 'setores' do banco de dados.
  *
- * @author Seu Nome
+ * @author Douglas (Coloque seu nome aqui)
  * @version 1.0
  */
 public class SetorDAO {
@@ -22,8 +22,9 @@ public class SetorDAO {
     /**
      * Insere um novo setor no banco de dados.
      * @param setor O objeto Setor a ser salvo.
+     * @throws SQLException se houver erro na gravação.
      */
-    public void salvar(Setor setor) {
+    public void salvar(Setor setor) throws SQLException {
         String sql = "INSERT INTO setores (nome, responsavel, email, ramal, descricao) VALUES (?, ?, ?, ?, ?)";
         try (Connection conn = ConexaoDB.conectar(); PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, setor.getNome());
@@ -32,16 +33,15 @@ public class SetorDAO {
             stmt.setString(4, setor.getRamal());
             stmt.setString(5, setor.getDescricao());
             stmt.executeUpdate();
-        } catch (SQLException e) {
-            System.err.println("Erro ao salvar: " + e.getMessage());
         }
     }
 
     /**
      * Atualiza os dados de um setor existente no banco.
      * @param setor O objeto Setor com os dados atualizados (deve conter o ID).
+     * @throws SQLException se houver erro na atualização.
      */
-    public void atualizar(Setor setor) {
+    public void atualizar(Setor setor) throws SQLException {
         String sql = "UPDATE setores SET nome=?, responsavel=?, email=?, ramal=?, descricao=? WHERE id=?";
         try (Connection conn = ConexaoDB.conectar(); PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, setor.getNome());
@@ -51,40 +51,41 @@ public class SetorDAO {
             stmt.setString(5, setor.getDescricao());
             stmt.setInt(6, setor.getId());
             stmt.executeUpdate();
-        } catch (SQLException e) {
-            System.err.println("Erro ao atualizar: " + e.getMessage());
         }
     }
 
     /**
      * Remove um setor do banco de dados com base no seu ID.
      * @param id O ID do setor a ser excluído.
+     * @throws SQLException se houver erro na exclusão.
      */
-    public void excluir(int id) {
+    public void excluir(int id) throws SQLException {
         String sql = "DELETE FROM setores WHERE id=?";
         try (Connection conn = ConexaoDB.conectar(); PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, id);
             stmt.executeUpdate();
-        } catch (SQLException e) {
-            System.err.println("Erro ao excluir: " + e.getMessage());
         }
     }
 
     /**
-     * Lista os setores cadastrados. Pode ser usado para listar todos ou aplicar um filtro de busca.
+     * Lista os setores cadastrados aplicando filtro e ordenação.
      *
-     * @param filtroBusca Texto a ser pesquisado no nome, responsável ou ramal. Se for vazio, retorna todos.
+     * @param filtroBusca Texto a ser pesquisado.
      * @return Uma lista contendo os setores encontrados.
+     * @throws SQLException se houver erro na leitura.
      */
-    public List<Setor> listar(String filtroBusca) {
+    public List<Setor> listar(String filtroBusca) throws SQLException {
         List<Setor> lista = new ArrayList<>();
-        String sql = "SELECT * FROM setores WHERE nome LIKE ? OR responsavel LIKE ? OR ramal LIKE ?";
+        // Busca em todas as colunas (inclusive email e descricao) e ordena pelo nome
+        String sql = "SELECT * FROM setores WHERE nome LIKE ? OR responsavel LIKE ? OR ramal LIKE ? OR email LIKE ? OR descricao LIKE ? ORDER BY nome ASC";
 
         try (Connection conn = ConexaoDB.conectar(); PreparedStatement stmt = conn.prepareStatement(sql)) {
             String termo = "%" + (filtroBusca == null ? "" : filtroBusca.trim()) + "%";
             stmt.setString(1, termo);
             stmt.setString(2, termo);
             stmt.setString(3, termo);
+            stmt.setString(4, termo);
+            stmt.setString(5, termo);
 
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
@@ -98,8 +99,6 @@ public class SetorDAO {
                 );
                 lista.add(s);
             }
-        } catch (SQLException e) {
-            System.err.println("Erro ao listar: " + e.getMessage());
         }
         return lista;
     }

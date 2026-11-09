@@ -31,6 +31,7 @@
     <bottom>
         <HBox spacing="15" alignment="CENTER_RIGHT">
             <padding><Insets top="20" bottom="20" left="20" right="20"/></padding>
+            <Button text="🤖 IA" onAction="#abrirIA" styleClass="btn-secondary"/>
             <Button text="+ Novo Contato" onAction="#abrirCadastro" styleClass="btn-primary"/>
             <Button text="Editar" onAction="#editarSelecionado" styleClass="btn-secondary"/>
             <Button text="Excluir" onAction="#excluirSelecionado" styleClass="btn-danger"/>

@@ -13,6 +13,7 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
+import java.sql.SQLException;
 import java.io.IOException;
 import java.util.Optional;
 
@@ -74,8 +75,12 @@ public class MainController {
      * @param filtro Texto digitado pelo usuário.
      */
     private void carregarTabela(String filtro) {
-        ObservableList<Setor> lista = FXCollections.observableArrayList(dao.listar(filtro));
-        tabelaContatos.setItems(lista);
+        try {
+            ObservableList<Setor> lista = FXCollections.observableArrayList(dao.listar(filtro));
+            tabelaContatos.setItems(lista);
+        } catch (SQLException e) {
+            mostrarAlerta("Erro no Banco", "Não foi possível carregar os dados: " + e.getMessage(), Alert.AlertType.ERROR);
+        }
     }
 
     @FXML
@@ -97,7 +102,6 @@ public class MainController {
     public void excluirSelecionado() {
         Setor selecionado = tabelaContatos.getSelectionModel().getSelectedItem();
         if (selecionado != null) {
-            // Alerta de confirmação antes de excluir
             Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
             confirm.setTitle("Confirmar Exclusão");
             confirm.setHeaderText("Excluir Contato");
@@ -105,8 +109,12 @@ public class MainController {
 
             Optional<ButtonType> result = confirm.showAndWait();
             if (result.isPresent() && result.get() == ButtonType.OK) {
-                dao.excluir(selecionado.getId());
-                carregarTabela(txtBusca.getText()); // Atualiza a tabela após excluir
+                try {
+                    dao.excluir(selecionado.getId());
+                    carregarTabela(txtBusca.getText());
+                } catch (SQLException e) {
+                    mostrarAlerta("Erro no Banco", "Não foi possível excluir: " + e.getMessage(), Alert.AlertType.ERROR);
+                }
             }
         } else {
             mostrarAlerta("Aviso", "Selecione um contato na tabela para excluir.", Alert.AlertType.WARNING);
@@ -152,5 +160,20 @@ public class MainController {
         alert.setHeaderText(null);
         alert.setContentText(mensagem);
         alert.showAndWait();
+    }
+
+    @FXML
+    public void abrirIA() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/br/educontatos/view/IA.fxml"));
+            Parent root = loader.load();
+            Stage stage = new Stage();
+            stage.setTitle("Assistente Virtual");
+            stage.setScene(new Scene(root));
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.show();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

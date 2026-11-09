@@ -22,7 +22,7 @@ import java.util.Optional;
  * Gerencia os eventos da interface (cliques em botões, digitação na busca) e 
  * conecta a View com o Banco de Dados através do SetorDAO.
  *
- * @autor Douglas Lira
+ * @author Douglas Lira
  * @version 1.0
  */
 public class MainController {

@@ -27,20 +27,23 @@ public class ConexaoDB {
         return DriverManager.getConnection(URL);
     }
 
-    public static void inicializarBanco() {
+        public static void inicializarBanco() {
+        // A coluna 'nome' não tem UNIQUE aqui porque o índice abaixo fará esse papel
         String sql = "CREATE TABLE IF NOT EXISTS setores (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                "nome TEXT NOT NULL, " + // UNIQUE evita setores duplicados
+                "nome TEXT NOT NULL, " +
                 "responsavel TEXT, " +
                 "email TEXT, " +
                 "ramal TEXT, " +
                 "descricao TEXT" +
                 ");";
+
         try (Connection conn = conectar(); Statement stmt = conn.createStatement()) {
             stmt.execute(sql);
+            // Garante que o nome do setor seja único (sem diferenciar maiúsculas)
             stmt.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_setores_nome ON setores(nome COLLATE NOCASE);");
         } catch (SQLException e) {
-            throw new RuntimeException("Erro crítico ao inicializar o banco: " + e.getMessage(), e);
+            throw new RuntimeException("Erro crítico ao inicializar banco: " + e.getMessage(), e);
         }
     }
 }

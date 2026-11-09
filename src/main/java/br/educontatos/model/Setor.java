@@ -4,7 +4,7 @@ package br.educontatos.model;
  * Representa a entidade Setor da Secretaria de Educação.
  * Esta classe é um espelho da tabela 'setores' no banco de dados.
  *
- * @autor Douglas Lira
+ * @author Douglas Lira
  * @version 1.0
  */
 public class Setor {

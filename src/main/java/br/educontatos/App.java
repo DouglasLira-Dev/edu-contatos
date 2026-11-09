@@ -5,6 +5,8 @@ import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import javafx.scene.control.Alert;
+import javafx.application.Platform;
 
 import java.util.Objects;
 
@@ -23,7 +25,8 @@ public class App extends Application {
             alert.setHeaderText("Falha ao inicializar o banco de dados");
             alert.setContentText(e.getMessage());
             alert.showAndWait();
-            System.exit(1);
+            Platform.exit();
+            return;
         }
 
         FXMLLoader fxmlLoader = new FXMLLoader(Objects.requireNonNull(App.class.getResource("/br/educontatos/view/Main.fxml")));

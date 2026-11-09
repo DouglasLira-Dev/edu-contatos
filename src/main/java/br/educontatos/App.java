@@ -15,9 +15,17 @@ public class App extends Application {
 
     @Override
     public void start(Stage stage) throws Exception {
-        ConexaoDB.inicializarBanco();
+        try {
+            ConexaoDB.inicializarBanco();
+        } catch (RuntimeException e) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Erro Crítico");
+            alert.setHeaderText("Falha ao inicializar o banco de dados");
+            alert.setContentText(e.getMessage());
+            alert.showAndWait();
+            System.exit(1);
+        }
 
-        // Caminho ajustado para br/educontatos/view/
         FXMLLoader fxmlLoader = new FXMLLoader(Objects.requireNonNull(App.class.getResource("/br/educontatos/view/Main.fxml")));
         Scene scene = new Scene(fxmlLoader.load(), 900, 600);
 

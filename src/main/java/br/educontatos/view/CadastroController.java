@@ -15,7 +15,7 @@ import javafx.stage.Stage;
  * Controlador da tela de Cadastro/Edição de contatos.
  * Responsável por validar os dados, salvar ou atualizar no banco.
  *
- * @author Seu Nome
+ * @autor Douglas Lira
  * @version 1.0
  */
 public class CadastroController {

@@ -21,9 +21,10 @@
     </top>
 
     <center>
-        <!-- Removido o -fx-margin inválido -->
         <TableView fx:id="tabelaContatos">
-            <padding><Insets left="20" right="20"/></padding>
+            <BorderPane.margin>
+                <Insets left="20" right="20"/>
+            </BorderPane.margin>
             <columns>
                 <TableColumn fx:id="colNome" text="Setor" prefWidth="150"/>
                 <TableColumn fx:id="colResponsavel" text="Responsável" prefWidth="150"/>

@@ -11,6 +11,13 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.ArrayList;
 
+/**
+ * Controlador da tela de Busca por Assunto.
+ * Interpreta a pergunta do usuário e busca setores por palavras-chave.
+ *
+ * @author Douglas Lira
+ * @version 1.0
+ */
 public class IAController {
 
     @FXML private TextField txtPergunta;
@@ -28,21 +35,22 @@ public class IAController {
         }
 
         // 1. Limpa a frase: tira pontuação e separa em palavras
-        pergunta = pergunta.replaceAll("[?,.!]", ""); 
+        pergunta = pergunta.replaceAll("[?,.!]", "");
         String[] palavrasArray = pergunta.split(" ");
 
-        // 2. Remove as "stop words" (palavras que não ajudam na busca)
-        List<String> stopWords = List.of("quem", "cuida", "da", "de", "do", "o", "a", "os", "as", "um", "uma", "e", "setor", "escolar", "falar", "com", "preciso");
+        // 2. Remove as "stop words" (APENAS palavras gramaticais, não palavras de domínio)
+        List<String> stopWords = List.of("quem", "cuida", "da", "de", "do", "o", "a", "os", "as", "um", "uma", "e", "para", "com", "preciso", "falar", "sobre");
         List<String> palavrasChave = new ArrayList<>();
 
         for (String p : palavrasArray) {
-            if (!stopWords.contains(p) && p.length() > 2) {
+            // MUDANÇA: Agora aceita palavras com 2 letras ou mais (para pegar "RH", "TI")
+            if (!stopWords.contains(p) && p.length() >= 2) {
                 palavrasChave.add(p);
             }
         }
 
         if (palavrasChave.isEmpty()) {
-            txtResposta.setText("Não consegui entender. Tente digitar apenas a palavra-chave (ex: merenda, transporte).");
+            txtResposta.setText("Não consegui entender. Tente digitar apenas a palavra-chave (ex: RH, merenda, transporte).");
             return;
         }
 

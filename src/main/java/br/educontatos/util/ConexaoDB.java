@@ -30,7 +30,7 @@ public class ConexaoDB {
     public static void inicializarBanco() {
         String sql = "CREATE TABLE IF NOT EXISTS setores (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                "nome TEXT NOT NULL UNIQUE, " + // UNIQUE evita setores duplicados
+                "nome TEXT NOT NULL, " + // UNIQUE evita setores duplicados
                 "responsavel TEXT, " +
                 "email TEXT, " +
                 "ramal TEXT, " +
@@ -38,10 +38,9 @@ public class ConexaoDB {
                 ");";
         try (Connection conn = conectar(); Statement stmt = conn.createStatement()) {
             stmt.execute(sql);
-            stmt.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_setores_nome ON setores(nome);");
+            stmt.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_setores_nome ON setores(nome COLLATE NOCASE);");
         } catch (SQLException e) {
-            // Em um app real, aqui usaríamos um log de erro.
-            System.err.println("Erro crítico ao inicializar banco: " + e.getMessage());
+            throw new RuntimeException("Erro crítico ao inicializar o banco: " + e.getMessage(), e);
         }
     }
 }

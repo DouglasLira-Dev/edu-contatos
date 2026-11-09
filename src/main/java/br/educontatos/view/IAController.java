@@ -34,9 +34,9 @@ public class IAController {
             return;
         }
 
-        // 1. Limpa a frase: tira pontuação e separa em palavras
-        pergunta = pergunta.replaceAll("[?,.!]", "");
-        String[] palavrasArray = pergunta.split(" ");
+        // Normaliza e separa em palavras
+        String perguntaNormalizada = br.educontatos.util.Normalizador.normalizar(pergunta).replaceAll("[?,.!]", "");
+        String[] palavrasArray = perguntaNormalizada.split(" ");
 
         // 2. Remove as "stop words" (APENAS palavras gramaticais, não palavras de domínio)
         List<String> stopWords = List.of("quem", "cuida", "da", "de", "do", "o", "a", "os", "as", "um", "uma", "e", "para", "com", "preciso", "falar", "sobre");

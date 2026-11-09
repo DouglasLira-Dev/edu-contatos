@@ -137,4 +137,34 @@ public class SetorDAO {
         }
         return resultados;
     }
+
+    public int importarLote(List<Setor> setores) throws SQLException {
+        String sql = "INSERT OR IGNORE INTO setores (nome, responsavel, email, ramal, descricao) VALUES (?, ?, ?, ?, ?)";
+        int importados = 0;
+
+        try (Connection conn = ConexaoDB.conectar()) {
+            conn.setAutoCommit(false); // Inicia transação
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                for (Setor setor : setores) {
+                    stmt.setString(1, setor.getNome());
+                    stmt.setString(2, setor.getResponsavel());
+                    stmt.setString(3, setor.getEmail());
+                    stmt.setString(4, setor.getRamal());
+                    stmt.setString(5, setor.getDescricao());
+                    stmt.addBatch();
+                }
+                int[] resultados = stmt.executeBatch();
+                for (int r : resultados) {
+                    if (r > 0) importados++;
+                }
+                conn.commit();
+            } catch (SQLException e) {
+                conn.rollback();
+                throw e;
+            } finally {
+                conn.setAutoCommit(true);
+            }
+        }
+        return importados;
+    }
 }

@@ -65,28 +65,41 @@ public class CadastroController {
         setor.setEmail(txtEmail.getText().trim());
         setor.setDescricao(txtDescricao.getText().trim());
 
-        try {
-            if (setorEdicao == null) {
-                dao.salvar(setor);
-            } else {
-                setor.setId(setorEdicao.getId());
-                dao.atualizar(setor);
-            }
+            try {
+                // Verifica duplicidade normalizada
+                String nomeNormalizado = br.educontatos.util.Normalizador.normalizar(setor.getNome());
+                List<Setor> existentes = dao.listar("");
 
-            if (telaPrincipal != null) {
-                telaPrincipal.atualizarTabela();
-            }
-            fecharJanela();
+                for (Setor existente : existentes) {
+                    // Se for edição, ignora o próprio registro
+                    if (setorEdicao != null && existente.getId() == setorEdicao.getId()) continue;
 
-        } catch (SQLException e) {
-            // Se o erro for por causa do UNIQUE (nome duplicado)
-            if (e.getMessage().contains("UNIQUE constraint failed")) {
-                mostrarAlerta("Erro", "Já existe um setor cadastrado com esse nome!", Alert.AlertType.ERROR);
-            } else {
-                mostrarAlerta("Erro no Banco", "Não foi possível salvar: " + e.getMessage(), Alert.AlertType.ERROR);
+                    if (br.educontatos.util.Normalizador.normalizar(existente.getNome()).equals(nomeNormalizado)) {
+                        mostrarAlerta("Erro", "Já existe um setor cadastrado com esse nome (ignorando maiúsculas e acentos).", Alert.AlertType.ERROR);
+                        return;
+                    }
+                }
+
+                if (setorEdicao == null) {
+                    dao.salvar(setor);
+                } else {
+                    setor.setId(setorEdicao.getId());
+                    dao.atualizar(setor);
+                }
+
+                if (telaPrincipal != null) {
+                    telaPrincipal.atualizarTabela();
+                }
+                fecharJanela();
+
+            } catch (SQLException e) {
+                if (e.getMessage().contains("UNIQUE constraint failed")) {
+                    mostrarAlerta("Erro", "Já existe um setor cadastrado com esse nome!", Alert.AlertType.ERROR);
+                } else {
+                    mostrarAlerta("Erro no Banco", "Não foi possível salvar: " + e.getMessage(), Alert.AlertType.ERROR);
+                }
             }
         }
-    }
 
     @FXML
     public void cancelar() {

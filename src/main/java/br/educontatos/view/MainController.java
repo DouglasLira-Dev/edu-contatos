@@ -201,23 +201,18 @@ public class MainController {
 
     // MÉTODOS DE EXPORTAÇÃO E IMPORTAÇÃO CSV
 
-    @FXML
+        @FXML
     public void exportarCSV() {
         FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Salvar planilha CSV");
-        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Arquivo CSV", "*.csv"));
+        fileChooser.setTitle("Salvar CSV");
+        fileChooser.setInitialFileName("contatos_educontatos.csv");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV", "*.csv"));
         File file = fileChooser.showSaveDialog(tabelaContatos.getScene().getWindow());
 
         if (file != null) {
-            try (PrintWriter writer = new PrintWriter(file, StandardCharsets.UTF_8)) {
-                writer.println("nome,responsavel,email,ramal,descricao");
-                for (Setor s : todosOsSetores) {
-                    writer.printf("%s,%s,%s,%s,%s%n",
-                            s.getNome(), s.getResponsavel() == null ? "" : s.getResponsavel(),
-                            s.getEmail() == null ? "" : s.getEmail(), s.getRamal() == null ? "" : s.getRamal(),
-                            s.getDescricao() == null ? "" : s.getDescricao());
-                }
-                mostrarAlerta("Sucesso", "Planilha exportada com sucesso!", Alert.AlertType.INFORMATION);
+            try {
+                br.educontatos.util.CsvSetores.exportar(file, todosOsSetores);
+                mostrarAlerta("Sucesso", "Arquivo salvo em:\n" + file.getAbsolutePath(), Alert.AlertType.INFORMATION);
             } catch (Exception e) {
                 mostrarAlerta("Erro", "Erro ao exportar: " + e.getMessage(), Alert.AlertType.ERROR);
             }
@@ -227,38 +222,22 @@ public class MainController {
     @FXML
     public void importarCSV() {
         FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Abrir planilha CSV");
-        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Arquivo CSV", "*.csv"));
+        fileChooser.setTitle("Abrir CSV");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV", "*.csv"));
         File file = fileChooser.showOpenDialog(tabelaContatos.getScene().getWindow());
 
         if (file != null) {
-            try (BufferedReader reader = new BufferedReader(new FileReader(file, StandardCharsets.UTF_8))) {
-                String linha;
-                boolean primeiraLinha = true;
-                int importados = 0;
+            try {
+                List<Setor> importadosLista = br.educontatos.util.CsvSetores.importar(file);
+                int importados = dao.importarLote(importadosLista);
+                int ignorados = importadosLista.size() - importados;
 
-                while ((linha = reader.readLine()) != null) {
-                    if (primeiraLinha) { primeiraLinha = false; continue; } // Pula o cabeçalho
-                    String[] partes = linha.split(",", -1); // -1 para manter campos vazios
-
-                    if (partes.length >= 1 && !partes[0].trim().isEmpty()) {
-                        Setor s = new Setor();
-                        s.setNome(partes[0].trim());
-                        s.setResponsavel(partes.length > 1 ? partes[1].trim() : "");
-                        s.setEmail(partes.length > 2 ? partes[2].trim() : "");
-                        s.setRamal(partes.length > 3 ? partes[3].trim() : "");
-                        s.setDescricao(partes.length > 4 ? partes[4].trim() : "");
-
-                        try {
-                            dao.salvar(s);
-                            importados++;
-                        } catch (SQLException e) {
-                            // Ignora duplicados e continua a importação 
-                        }
-                    }
-                }
                 atualizarTabela();
-                mostrarAlerta("Sucesso", importados + " contatos importados com sucesso!", Alert.AlertType.INFORMATION);
+                mostrarAlerta("Importação Concluída",
+                    importados + " contatos importados.\n" +
+                    ignorados + " foram ignorados (já existiam).\n\n" +
+                    "Nota: Contatos existentes não são atualizados.",
+                    Alert.AlertType.INFORMATION);
             } catch (Exception e) {
                 mostrarAlerta("Erro", "Erro ao importar: " + e.getMessage(), Alert.AlertType.ERROR);
             }

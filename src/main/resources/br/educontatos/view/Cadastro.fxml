@@ -29,7 +29,9 @@
         <TextArea fx:id="txtDescricao" promptText="Ex: Responsável por contratações, férias, pagamentos..." GridPane.rowIndex="4" GridPane.columnIndex="1" prefHeight="80" wrapText="true"/>
     </GridPane>
 
-    <HBox spacing="10" alignment="CENTER_RIGHT" style="-fx-padding-top: 15px;">
+    <!-- Ajuste no padding do HBox -->
+    <HBox spacing="10" alignment="CENTER_RIGHT">
+        <VBox.margin><Insets top="15"/></VBox.margin>
         <Button text="Salvar" onAction="#salvar" styleClass="btn-primary"/>
         <Button text="Cancelar" onAction="#cancelar" styleClass="btn-danger"/>
     </HBox>

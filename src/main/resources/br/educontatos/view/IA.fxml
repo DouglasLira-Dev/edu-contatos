@@ -6,11 +6,12 @@
 <VBox xmlns:fx="http://javafx.com/fxml" fx:controller="br.educontatos.view.IAController" spacing="15" style="-fx-background-color: #ffffff;">
     <padding><Insets top="25" bottom="25" left="25" right="25"/></padding>
 
-    <Label text="🤖 Assistente Virtual" styleClass="header-label" style="-fx-font-size: 20px;"/>
-    <Label text="Digite o que você precisa e eu encontro o setor responsável." styleClass="sub-header-label"/>
+    <Label text="🔍 Busca por Assunto" styleClass="header-label" style="-fx-font-size: 20px;"/>
+    <Label text="Digite uma palavra-chave (ex: merenda, transporte) e eu encontro o setor." styleClass="sub-header-label"/>
 
     <HBox spacing="10">
-        <TextField fx:id="txtPergunta" promptText="Ex: Quem cuida da merenda escolar?" HBox.hgrow="ALWAYS"/>
+        <!-- O onAction permite buscar apertando ENTER -->
+        <TextField fx:id="txtPergunta" promptText="Ex: Quem cuida da merenda escolar?" HBox.hgrow="ALWAYS" onAction="#buscarResposta"/>
         <Button text="Buscar" onAction="#buscarResposta" styleClass="btn-secondary"/>
     </HBox>
 

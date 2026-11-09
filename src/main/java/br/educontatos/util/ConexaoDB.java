@@ -38,6 +38,7 @@ public class ConexaoDB {
                 ");";
         try (Connection conn = conectar(); Statement stmt = conn.createStatement()) {
             stmt.execute(sql);
+            stmt.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_setores_nome ON setores(nome);");
         } catch (SQLException e) {
             // Em um app real, aqui usaríamos um log de erro.
             System.err.println("Erro crítico ao inicializar banco: " + e.getMessage());

@@ -102,4 +102,39 @@ public class SetorDAO {
         }
         return lista;
     }
+
+    /**
+     * Busca setores baseando-se em palavras-chave (para o Assistente).
+     */
+    public List<Setor> buscarPorPalavrasChave(List<String> palavras) throws SQLException {
+        List<Setor> resultados = new ArrayList<>();
+        if (palavras.isEmpty()) return resultados;
+
+        // Monta a query dinamicamente: ... WHERE (nome LIKE ? OR descricao LIKE ?) OR (nome LIKE ? OR descricao LIKE ?) ...
+        StringBuilder sql = new StringBuilder("SELECT * FROM setores WHERE ");
+        for (int i = 0; i < palavras.size(); i++) {
+            sql.append("(nome LIKE ? OR descricao LIKE ? OR responsavel LIKE ?)");
+            if (i < palavras.size() - 1) sql.append(" OR ");
+        }
+        sql.append(" ORDER BY nome ASC");
+
+        try (Connection conn = ConexaoDB.conectar(); PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
+            int paramIndex = 1;
+            for (String palavra : palavras) {
+                String termo = "%" + palavra + "%";
+                stmt.setString(paramIndex++, termo);
+                stmt.setString(paramIndex++, termo);
+                stmt.setString(paramIndex++, termo);
+            }
+
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                resultados.add(new Setor(
+                    rs.getInt("id"), rs.getString("nome"), rs.getString("responsavel"),
+                    rs.getString("email"), rs.getString("ramal"), rs.getString("descricao")
+                ));
+            }
+        }
+        return resultados;
+    }
 }

@@ -12,12 +12,18 @@
             <padding><Insets top="30" bottom="20" left="20" right="20"/></padding>
             <Label text="Central de Contatos" styleClass="header-label"/>
             <Label text="Consulte ramais e e-mails dos setores da Secretaria" styleClass="sub-header-label"/>
-            <TextField fx:id="txtBusca" promptText="🔍 Digite o nome do setor, responsável ou ramal para buscar..." prefWidth="600" style="-fx-margin-top: 15px;"/>
+
+            <!-- Removido o -fx-margin-top inválido -->
+            <TextField fx:id="txtBusca" promptText="🔍 Digite o nome do setor, responsável ou ramal para buscar..." prefWidth="600">
+                <VBox.margin><Insets top="15"/></VBox.margin>
+            </TextField>
         </VBox>
     </top>
 
     <center>
-        <TableView fx:id="tabelaContatos" style="-fx-margin: 0 20 0 20;">
+        <!-- Removido o -fx-margin inválido -->
+        <TableView fx:id="tabelaContatos">
+            <padding><Insets left="20" right="20"/></padding>
             <columns>
                 <TableColumn fx:id="colNome" text="Setor" prefWidth="150"/>
                 <TableColumn fx:id="colResponsavel" text="Responsável" prefWidth="150"/>
@@ -31,7 +37,7 @@
     <bottom>
         <HBox spacing="15" alignment="CENTER_RIGHT">
             <padding><Insets top="20" bottom="20" left="20" right="20"/></padding>
-            <Button text="🤖 IA" onAction="#abrirIA" styleClass="btn-secondary"/>
+            <Button text="🔍 Busca Inteligente" onAction="#abrirIA" styleClass="btn-secondary"/>
             <Button text="+ Novo Contato" onAction="#abrirCadastro" styleClass="btn-primary"/>
             <Button text="Editar" onAction="#editarSelecionado" styleClass="btn-secondary"/>
             <Button text="Excluir" onAction="#excluirSelecionado" styleClass="btn-danger"/>

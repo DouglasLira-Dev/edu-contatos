@@ -229,14 +229,34 @@ public class MainController {
         if (file != null) {
             try {
                 List<Setor> importadosLista = br.educontatos.util.CsvSetores.importar(file);
-                int importados = dao.importarLote(importadosLista);
-                int ignorados = importadosLista.size() - importados;
 
+                // Filtra duplicados (contra o banco e contra o próprio arquivo)
+                List<Setor> paraInserir = new ArrayList<>();
+                List<String> nomesExistentes = new ArrayList<>();
+
+                // Carrega nomes do banco
+                for (Setor s : dao.listar("")) {
+                    nomesExistentes.add(br.educontatos.util.Normalizador.normalizar(s.getNome()));
+                }
+
+                int ignoradosPorDuplicidade = 0;
+                for (Setor s : importadosLista) {
+                    String nomeNorm = br.educontatos.util.Normalizador.normalizar(s.getNome());
+                    if (nomesExistentes.contains(nomeNorm)) {
+                        ignoradosPorDuplicidade++;
+                    } else {
+                        nomesExistentes.add(nomeNorm);
+                        paraInserir.add(s);
+                    }
+                }
+
+                int importados = dao.importarLote(paraInserir);
                 atualizarTabela();
-                mostrarAlerta("Importação Concluída",
+
+                mostrarAlerta("Importação Concluída", 
                     importados + " contatos importados.\n" +
-                    ignorados + " foram ignorados (já existiam).\n\n" +
-                    "Nota: Contatos existentes não são atualizados.",
+                    ignoradosPorDuplicidade + " foram ignorados (já existiam no banco ou no arquivo).\n\n" +
+                    "Nota: Contatos existentes não são atualizados.", 
                     Alert.AlertType.INFORMATION);
             } catch (Exception e) {
                 mostrarAlerta("Erro", "Erro ao importar: " + e.getMessage(), Alert.AlertType.ERROR);

@@ -14,7 +14,7 @@ import java.util.List;
  * Data Access Object (DAO) responsável por executar as operações CRUD (Create, Read, Update, Delete)
  * na tabela 'setores' do banco de dados.
  *
- * @author Douglas (Coloque seu nome aqui)
+ * @author Douglas Lira
  * @version 1.0
  */
 public class SetorDAO {

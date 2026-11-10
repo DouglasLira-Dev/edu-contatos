@@ -98,15 +98,17 @@ public class CsvSetores {
             char c = conteudo.charAt(i);
             if (c == '"') {
                 if (dentroDeAspas && i + 1 < conteudo.length() && conteudo.charAt(i + 1) == '"') {
-                    atual.append('"');
+                    // MUDANÇA: Acrescenta AS DUAS aspas e avança o índice, sem alterar o estado
+                    atual.append("\"\"");
                     i++;
                 } else {
+                    // Alterna o estado e acrescenta a aspa (abertura/fechamento)
                     dentroDeAspas = !dentroDeAspas;
                     atual.append(c);
                 }
             } else if ((c == '\n' || c == '\r') && !dentroDeAspas) {
                 if (c == '\r' && i + 1 < conteudo.length() && conteudo.charAt(i + 1) == '\n') {
-                    i++; // Pula o \n se for \r\n
+                    i++;
                 }
                 linhas.add(atual.toString());
                 atual.setLength(0);

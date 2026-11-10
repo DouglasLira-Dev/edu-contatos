@@ -2,6 +2,9 @@ package br.educontatos.view;
 
 import br.educontatos.dao.SetorDAO;
 import br.educontatos.model.Setor;
+import br.educontatos.util.BuscaSetores;
+import br.educontatos.util.CsvSetores;
+import br.educontatos.util.Normalizador;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -13,22 +16,18 @@ import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
-import java.io.IOException;
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
-import java.io.PrintWriter;
-import java.nio.charset.StandardCharsets;
+import java.io.IOException;
 import java.sql.SQLException;
-import java.text.Normalizer;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Controlador da tela principal.
- * Gerencia os eventos da interface (cliques em botões, digitação na busca) e 
- * conecta a View com o Banco de Dados através do SetorDAO.
+ * Gerencia os eventos da interface e conecta a View com o Banco de Dados.
  *
  * @author Douglas Lira
  * @version 1.0
@@ -54,7 +53,6 @@ public class MainController {
         colEmail.setCellValueFactory(new PropertyValueFactory<>("email"));
         colDescricao.setCellValueFactory(new PropertyValueFactory<>("descricao"));
 
-        // Duplo clique para editar
         tabelaContatos.setRowFactory(tv -> {
             TableRow<Setor> row = new TableRow<>();
             row.setOnMouseClicked(event -> {
@@ -65,50 +63,25 @@ public class MainController {
             return row;
         });
 
-        // Carrega os dados iniciais
-        carregarTabela("");
+        recarregarDoBanco();
 
-        // Listener de busca instantânea (agora filtra na memória, sem travar o banco)
         txtBusca.textProperty().addListener((observable, oldValue, newValue) -> {
-            carregarTabela(newValue);
+            aplicarFiltro(newValue);
         });
     }
 
-    private void carregarTabela(String filtro) {
+    private void recarregarDoBanco() {
         try {
-            // Carrega do banco apenas se a lista estiver vazia
-            if (todosOsSetores.isEmpty()) {
-                todosOsSetores = dao.listar("");
-            }
-
-            if (filtro == null || filtro.trim().isEmpty()) {
-                tabelaContatos.setItems(FXCollections.observableArrayList(todosOsSetores));
-                return;
-            }
-
-            // Filtro em memória ignorando acentos e maiúsculas
-            String filtroNormalizado = normalizar(filtro);
-            List<Setor> filtrados = todosOsSetores.stream()
-                    .filter(s -> normalizar(s.getNome()).contains(filtroNormalizado) ||
-                            normalizar(s.getResponsavel()).contains(filtroNormalizado) ||
-                            normalizar(s.getRamal()).contains(filtroNormalizado) ||
-                            normalizar(s.getEmail()).contains(filtroNormalizado) ||
-                            normalizar(s.getDescricao()).contains(filtroNormalizado))
-                    .toList();
-
-            tabelaContatos.setItems(FXCollections.observableArrayList(filtrados));
-
+            todosOsSetores = dao.listar("");
+            aplicarFiltro(txtBusca.getText());
         } catch (SQLException e) {
             mostrarAlerta("Erro no Banco", "Não foi possível carregar os dados: " + e.getMessage(), Alert.AlertType.ERROR);
         }
     }
 
-    // Função utilitária para remover acentos
-    private String normalizar(String texto) {
-        if (texto == null) return "";
-        return Normalizer.normalize(texto, Normalizer.Form.NFD)
-                .replaceAll("\\p{InCombiningDiacriticalMarks}+", "")
-                .toLowerCase();
+    private void aplicarFiltro(String filtro) {
+        List<Setor> filtrados = BuscaSetores.filtrar(todosOsSetores, filtro);
+        tabelaContatos.setItems(FXCollections.observableArrayList(filtrados));
     }
 
     @FXML
@@ -139,8 +112,7 @@ public class MainController {
             if (result.isPresent() && result.get() == ButtonType.OK) {
                 try {
                     dao.excluir(selecionado.getId());
-                    todosOsSetores.clear(); // Limpa a memória para recarregar
-                    carregarTabela(txtBusca.getText());
+                    recarregarDoBanco();
                 } catch (SQLException e) {
                     mostrarAlerta("Erro no Banco", "Não foi possível excluir: " + e.getMessage(), Alert.AlertType.ERROR);
                 }
@@ -172,8 +144,7 @@ public class MainController {
     }
 
     public void atualizarTabela() {
-        todosOsSetores.clear(); // Limpa a memória para buscar os dados novos do banco
-        carregarTabela(txtBusca.getText());
+        recarregarDoBanco();
     }
 
     private void mostrarAlerta(String titulo, String mensagem, Alert.AlertType tipo) {
@@ -199,9 +170,7 @@ public class MainController {
         }
     }
 
-    // MÉTODOS DE EXPORTAÇÃO E IMPORTAÇÃO CSV
-
-        @FXML
+    @FXML
     public void exportarCSV() {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Salvar CSV");
@@ -211,7 +180,7 @@ public class MainController {
 
         if (file != null) {
             try {
-                br.educontatos.util.CsvSetores.exportar(file, todosOsSetores);
+                CsvSetores.exportar(file, todosOsSetores);
                 mostrarAlerta("Sucesso", "Arquivo salvo em:\n" + file.getAbsolutePath(), Alert.AlertType.INFORMATION);
             } catch (Exception e) {
                 mostrarAlerta("Erro", "Erro ao exportar: " + e.getMessage(), Alert.AlertType.ERROR);
@@ -228,20 +197,19 @@ public class MainController {
 
         if (file != null) {
             try {
-                List<Setor> importadosLista = br.educontatos.util.CsvSetores.importar(file);
+                List<Setor> importadosLista = CsvSetores.importar(file);
 
-                // Filtra duplicados (contra o banco e contra o próprio arquivo)
                 List<Setor> paraInserir = new ArrayList<>();
-                List<String> nomesExistentes = new ArrayList<>();
+                // OTIMIZAÇÃO: Usando HashSet para busca rápida
+                Set<String> nomesExistentes = new HashSet<>();
 
-                // Carrega nomes do banco
                 for (Setor s : dao.listar("")) {
-                    nomesExistentes.add(br.educontatos.util.Normalizador.normalizar(s.getNome()));
+                    nomesExistentes.add(Normalizador.normalizar(s.getNome()));
                 }
 
                 int ignoradosPorDuplicidade = 0;
                 for (Setor s : importadosLista) {
-                    String nomeNorm = br.educontatos.util.Normalizador.normalizar(s.getNome());
+                    String nomeNorm = Normalizador.normalizar(s.getNome());
                     if (nomesExistentes.contains(nomeNorm)) {
                         ignoradosPorDuplicidade++;
                     } else {
@@ -251,7 +219,7 @@ public class MainController {
                 }
 
                 int importados = dao.importarLote(paraInserir);
-                atualizarTabela();
+                recarregarDoBanco();
 
                 mostrarAlerta("Importação Concluída", 
                     importados + " contatos importados.\n" +

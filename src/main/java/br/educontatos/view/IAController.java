@@ -2,7 +2,8 @@ package br.educontatos.view;
 
 import br.educontatos.dao.SetorDAO;
 import br.educontatos.model.Setor;
-import br.educontatos.util.Normalizador; // Importando a classe utilitária
+import br.educontatos.util.BuscaSetores;
+import br.educontatos.util.Normalizador;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.TextArea;
@@ -15,7 +16,7 @@ import java.util.List;
 /**
  * Controlador da tela de Busca por Assunto.
  * Interpreta a pergunta do usuário e busca setores por palavras-chave,
- * aplicando a mesma normalização (sem acentos) da tela principal.
+ * aplicando a mesma normalização da tela principal.
  *
  * @author Douglas Lira
  * @version 1.0
@@ -36,11 +37,10 @@ public class IAController {
             return;
         }
 
-        // 1. Normaliza a pergunta (tira acentos, pontuação) e separa em palavras
+        // Normaliza e separa em palavras-chave
         String perguntaNormalizada = Normalizador.normalizar(pergunta).replaceAll("[?,.!]", "");
         String[] palavrasArray = perguntaNormalizada.split(" ");
 
-        // 2. Remove as "stop words" (apenas palavras gramaticais)
         List<String> stopWords = List.of("quem", "cuida", "da", "de", "do", "o", "a", "os", "as", "um", "uma", "e", "para", "com", "preciso", "falar", "sobre");
         List<String> palavrasChave = new ArrayList<>();
 
@@ -56,29 +56,9 @@ public class IAController {
         }
 
         try {
-            // 3. Carrega todos os setores do banco e filtra em memória
+            // Carrega todos os setores e usa a classe BuscaSetores unificada
             List<Setor> todos = dao.listar("");
-            List<Setor> resultados = new ArrayList<>();
-
-            for (Setor s : todos) {
-                // Concatena todos os campos e normaliza
-                String textoSetor = Normalizador.normalizar(
-                        s.getNome() + " " + s.getResponsavel() + " " + 
-                        s.getEmail() + " " + s.getRamal() + " " + s.getDescricao());
-
-                // Verifica se TODAS as palavras-chave estão presentes no texto do setor
-                boolean todosOsTermosPresentes = true;
-                for (String palavra : palavrasChave) {
-                    if (!textoSetor.contains(palavra)) {
-                        todosOsTermosPresentes = false;
-                        break;
-                    }
-                }
-
-                if (todosOsTermosPresentes) {
-                    resultados.add(s);
-                }
-            }
+            List<Setor> resultados = BuscaSetores.filtrar(todos, String.join(" ", palavrasChave));
 
             if (resultados.isEmpty()) {
                 txtResposta.setText("Desculpe, não encontrei nenhum setor relacionado a: " + String.join(", ", palavrasChave));

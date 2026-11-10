@@ -11,6 +11,8 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.TextArea;
 import javafx.stage.Stage;
 
+import java.util.List;
+
 /**
  * Controlador da tela de Cadastro/Edição de contatos.
  * Responsável por validar os dados, salvar ou atualizar no banco.
